@@ -128,9 +128,9 @@ function update() {
   if (Math.random() < 0.015) multipliers.push({ x: Math.random() * (canvas.width - 12), y: -12, value: Math.floor(Math.random() * 3) + 1 });
   if (Math.random() < 0.004) shields.push({ x: Math.random() * (canvas.width - 30), y: -30 });
 
-  obstacles.forEach(obj => obj.y += 5);
-  multipliers.forEach(mp => mp.y += 4);
-  shields.forEach(sh => sh.y += 3);
+  obstacles.forEach(obj => obj.y += 6);
+  multipliers.forEach(mp => mp.y += 6);
+  shields.forEach(sh => sh.y += 4);
 
   obstacles = obstacles.filter(obj => {
     if (Math.hypot(player.x - obj.x, player.y - obj.y) < player.size) {
