@@ -1,6 +1,3 @@
-// Full JavaScript for Succinct-themed Stage 2 game with mobile scaling and 1x speed increase
-// Game URL: https://zk-dodge.vercel.app
-
 const playerImages = {
   green: document.getElementById("player-green"),
   pink: document.getElementById("player-pink"),
@@ -20,6 +17,11 @@ const teamSelect = document.getElementById("teamSelect");
 const scoreDisplay = document.getElementById("score");
 const proofsDisplay = document.getElementById("proofs");
 const livesDisplay = document.getElementById("lives");
+document.getElementById("leftBtn").addEventListener("touchstart", () => keys["ArrowLeft"] = true);
+document.getElementById("leftBtn").addEventListener("touchend", () => keys["ArrowLeft"] = false);
+document.getElementById("rightBtn").addEventListener("touchstart", () => keys["ArrowRight"] = true);
+document.getElementById("rightBtn").addEventListener("touchend", () => keys["ArrowRight"] = false);
+
 
 let player = {
   x: 200,
@@ -39,33 +41,13 @@ let proofs = 0;
 let lives = 5;
 let gameRunning = false;
 let animationId;
-let touchStartX = 0;
-
-function resizeCanvas() {
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-  player.y = canvas.height - 50;
-}
-window.addEventListener("resize", resizeCanvas);
-resizeCanvas();
-
-canvas.addEventListener("touchstart", e => {
-  if (e.touches.length === 1) {
-    touchStartX = e.touches[0].clientX;
-  }
-});
-canvas.addEventListener("touchmove", e => {
-  if (e.touches.length === 1) {
-    const touchX = e.touches[0].clientX;
-    player.x = touchX;
-  }
-});
 
 function startGame() {
   player.color = teamSelect.value;
   player.image = playerImages[player.color];
   document.getElementById("start-screen").style.display = "none";
   scoreboard.style.display = "block";
+  gameRunning = true;
   score = 0;
   proofs = 0;
   lives = 5;
@@ -74,18 +56,20 @@ function startGame() {
   shields = [];
   player.shieldActive = false;
   player.shieldTimer = 0;
-  gameRunning = true;
-  updateScore();
   requestAnimationFrame(gameLoop);
+  if (/Mobi|Android/i.test(navigator.userAgent)) {
+  document.getElementById("mobileControls").style.display = "block";
+}
+
 }
 
 function resetGame() {
-  document.getElementById("end-screen").style.display = "none";
   startGame();
 }
 
 function drawPlayer() {
   if (player.shieldActive) {
+    // Yellow glowing ring
     ctx.beginPath();
     ctx.arc(player.x, player.y, player.size + 10, 0, Math.PI * 2);
     ctx.strokeStyle = "#ffff00";
@@ -97,7 +81,13 @@ function drawPlayer() {
   }
 
   if (player.image && player.image.complete) {
-    ctx.drawImage(player.image, player.x - player.size, player.y - player.size, player.size * 2, player.size * 2);
+    ctx.drawImage(
+      player.image,
+      player.x - player.size,
+      player.y - player.size,
+      player.size * 2,
+      player.size * 2
+    );
   } else {
     ctx.shadowBlur = 20;
     ctx.shadowColor = player.color;
@@ -148,31 +138,37 @@ function drawMultipliers() {
 }
 
 function update() {
-  if (keys["ArrowLeft"] || keys["a"]) player.x -= 14;
-  if (keys["ArrowRight"] || keys["d"]) player.x += 14;
+  if (keys["ArrowLeft"] || keys["a"]) player.x -= 6;
+  if (keys["ArrowRight"] || keys["d"]) player.x += 6;
   player.x = Math.max(player.size, Math.min(canvas.width - player.size, player.x));
 
-  if (Math.random() < 0.04) {
+  // Spawn elements
+  if (Math.random() < 0.02) {
     obstacles.push({ x: Math.random() * (canvas.width - 20), y: -20 });
   }
-  if (Math.random() < 0.03) {
+  if (Math.random() < 0.015) {
     multipliers.push({ x: Math.random() * (canvas.width - 12), y: -12, value: Math.floor(Math.random() * 3) + 1 });
   }
-  if (Math.random() < 0.008) {
+  if (Math.random() < 0.004) {
     shields.push({ x: Math.random() * (canvas.width - 30), y: -30 });
   }
 
-  obstacles.forEach(obj => obj.y += 12);
-  multipliers.forEach(mp => mp.y += 10);
-  shields.forEach(sh => sh.y += 8);
+  // Move elements
+  obstacles.forEach(obj => obj.y += 5);
+  multipliers.forEach(mp => mp.y += 4);
+  shields.forEach(sh => sh.y += 3);
 
+  // Collisions
   obstacles = obstacles.filter(obj => {
     if (Math.hypot(player.x - obj.x, player.y - obj.y) < player.size) {
-      if (player.shieldActive) return false;
-      lives--;
-      livesDisplay.textContent = lives;
-      if (lives <= 0) endGame();
-      return false;
+      if (player.shieldActive) {
+        return false;
+      } else {
+        lives--;
+        livesDisplay.textContent = lives;
+        if (lives <= 0) endGame();
+        return false;
+      }
     }
     return obj.y < canvas.height;
   });
@@ -191,16 +187,19 @@ function update() {
   shields = shields.filter(sh => {
     if (Math.hypot(player.x - sh.x, player.y - sh.y) < player.size + 10) {
       player.shieldActive = true;
-      player.shieldTimer = 360;
+      player.shieldTimer = 360; // 6 seconds
       animateProof(sh.x, sh.y);
       return false;
     }
     return sh.y < canvas.height;
   });
 
+  // Shield timer countdown
   if (player.shieldActive) {
     player.shieldTimer--;
-    if (player.shieldTimer <= 0) player.shieldActive = false;
+    if (player.shieldTimer <= 0) {
+      player.shieldActive = false;
+    }
   }
 }
 
@@ -221,7 +220,6 @@ function animateProof(x, y) {
 function updateScore() {
   scoreDisplay.textContent = score;
   proofsDisplay.textContent = proofs;
-  livesDisplay.textContent = lives;
 }
 
 function gameLoop() {
@@ -238,7 +236,7 @@ function gameLoop() {
 function endGame() {
   gameRunning = false;
   cancelAnimationFrame(animationId);
-  scoreboard.style.display = "none";
+  document.getElementById("scoreboard").style.display = "none";
   document.getElementById("start-screen").style.display = "none";
   document.getElementById("end-screen").style.display = "block";
   document.getElementById("finalProofs").textContent = proofs;
@@ -250,7 +248,7 @@ startBtn.addEventListener("click", startGame);
 restartBtn.addEventListener("click", resetGame);
 document.getElementById("shareBtn").addEventListener("click", () => {
   const name = document.getElementById("playerName").value || "Someone";
-  const tweetText = `${name} collected ${proofs} proofs in the zk dodge! ⚡🔐\nTry it here: https://zk-dodge.vercel.app made by @wru_kii`;
+  const tweetText = `${name} collected ${proofs} proofs in the zk dodge! ⚡🔐\nTry it here: https://yourlink.com made by @wru_kii`;
   const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`;
   window.open(tweetUrl, '_blank');
 });
