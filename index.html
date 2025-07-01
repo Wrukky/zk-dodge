@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Zk Dodge</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="icon" href="favicon.ico" />
+  <meta name="theme-color" content="#1f1f2f" />
+  <link href="https://fonts.googleapis.com/css2?family=Segoe+UI&family=Audiowide&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div id="gameContainer">
+
+  <!-- Start Screen -->
+  <div id="start-screen">
+    <h1 class="title">Zk Dodge</h1>
+    <p>Select your team:</p>
+    <select id="teamSelect">
+      <option value="green">Green</option>
+      <option value="blue">Blue</option>
+      <option value="pink">Pink</option>
+      <option value="orange">Orange</option>
+      <option value="purple">Purple</option>
+    </select>
+    <button id="startBtn">Start Game</button>
+  </div>
+
+  <!-- End Screen -->
+  <div id="end-screen" style="display:none;">
+    <h2>Game Over!</h2>
+    <p>You collected <span id="finalProofs">0</span> proofs.</p>
+    <input type="text" id="playerName" placeholder="Enter your name" />
+    <button id="shareBtn">Share on Twitter</button>
+  </div>
+
+  <!-- Canvas -->
+  <canvas id="gameCanvas" width="400" height="600"></canvas>
+
+  <!-- Scoreboard -->
+  <div id="scoreboard">
+    <p>🧮 Points: <span id="score">0</span></p>
+    <p>🧪 Proofs: <span id="proofs">0</span></p>
+    <p>❤️ Lives: <span id="lives">5</span></p>
+    <button id="restartBtn">Restart</button>
+  </div>
+
+  <!-- Mobile Controls -->
+  <div id="mobileControls" style="display:none;">
+    <button id="leftBtn">⬅️</button>
+    <button id="rightBtn">➡️</button>
+  </div>
+
+</div>
+
+<!-- Assets (hidden) -->
+<div id="assets" style="display: none;">
+  <img id="succinctImage" src="s-image.png" />
+  <img id="bombImage" src="s-bomb.png" />
+  <img id="player-green" src="green.png" />
+  <img id="player-pink" src="pink.png" />
+  <img id="player-orange" src="orange.png" />
+  <img id="player-blue" src="blue.png" />
+  <img id="player-purple" src="purple.png" />
+</div>
+
+<!-- JS -->
+<script src="game.js"></script>
+
+</body>
+</html>
