@@ -121,15 +121,15 @@ function drawMultipliers() {
 function update(delta = 1) {
   const speedMultiplier = delta;
 
-  if (keys["ArrowLeft"] || keys["a"]) player.x -= 6 * speedMultiplier;
-  if (keys["ArrowRight"] || keys["d"]) player.x += 6 * speedMultiplier
+  if (keys["ArrowLeft"] || keys["a"]) player.x -= 9 * speedMultiplier;
+  if (keys["ArrowRight"] || keys["d"]) player.x += 9 * speedMultiplier
   player.x = Math.max(player.size, Math.min(canvas.width - player.size, player.x));
 
   if (Math.random() < 0.04) obstacles.push({ x: Math.random() * (canvas.width - 20), y: -20 });
   if (Math.random() < 0.018) multipliers.push({ x: Math.random() * (canvas.width - 12), y: -12, value: Math.floor(Math.random() * 3) + 1 });
   if (Math.random() < 0.005) shields.push({ x: Math.random() * (canvas.width - 30), y: -30 });
 
-  obstacles.forEach(obj => obj.y += 5 * speedMultiplier);
+  obstacles.forEach(obj => obj.y += 7 * speedMultiplier);
   multipliers.forEach(mp => mp.y += 4 * speedMultiplier);
   shields.forEach(sh => sh.y += 3 * speedMultiplier);
 
