@@ -248,7 +248,7 @@ startBtn.addEventListener("click", startGame);
 restartBtn.addEventListener("click", resetGame);
 document.getElementById("shareBtn").addEventListener("click", () => {
   const name = document.getElementById("playerName").value || "Someone";
-  const tweetText = `${name} collected ${proofs} proofs in the zk dodge! ⚡🔐\nTry it here: https://yourlink.com made by @wru_kii`;
+  const tweetText = `${name} collected ${proofs} proofs in the zk dodge! ⚡🔐\nTry it here: https://zk-dodge.vercel.app/ made by @wru_kii`;
   const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`;
   window.open(tweetUrl, '_blank');
 });
