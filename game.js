@@ -5,6 +5,7 @@ const playerImages = {
   blue: document.getElementById("player-blue"),
   purple: document.getElementById("player-purple")
 };
+
 const succinctImg = document.getElementById("succinctImage");
 const bombImg = document.getElementById("bombImage");
 const canvas = document.getElementById("gameCanvas");
@@ -12,16 +13,11 @@ const ctx = canvas.getContext("2d");
 
 const startBtn = document.getElementById("startBtn");
 const restartBtn = document.getElementById("restartBtn");
-const scoreboard = document.getElementById("scoreboard");
 const teamSelect = document.getElementById("teamSelect");
 const scoreDisplay = document.getElementById("score");
 const proofsDisplay = document.getElementById("proofs");
 const livesDisplay = document.getElementById("lives");
-document.getElementById("leftBtn").addEventListener("touchstart", () => keys["ArrowLeft"] = true);
-document.getElementById("leftBtn").addEventListener("touchend", () => keys["ArrowLeft"] = false);
-document.getElementById("rightBtn").addEventListener("touchstart", () => keys["ArrowRight"] = true);
-document.getElementById("rightBtn").addEventListener("touchend", () => keys["ArrowRight"] = false);
-
+const scoreboard = document.getElementById("scoreboard");
 
 let player = {
   x: 200,
@@ -32,35 +28,28 @@ let player = {
   shieldActive: false,
   shieldTimer: 0
 };
-let obstacles = [];
-let multipliers = [];
-let shields = [];
+
 let keys = {};
-let score = 0;
-let proofs = 0;
-let lives = 5;
-let gameRunning = false;
-let animationId;
+let obstacles = [], multipliers = [], shields = [];
+let score = 0, proofs = 0, lives = 5;
+let gameRunning = false, animationId = null;
 
 function startGame() {
   player.color = teamSelect.value;
   player.image = playerImages[player.color];
-  document.getElementById("start-screen").style.display = "none";
-  scoreboard.style.display = "block";
-  gameRunning = true;
-  score = 0;
-  proofs = 0;
-  lives = 5;
-  obstacles = [];
-  multipliers = [];
-  shields = [];
-  player.shieldActive = false;
-  player.shieldTimer = 0;
-  requestAnimationFrame(gameLoop);
-  if (/Mobi|Android/i.test(navigator.userAgent)) {
-  document.getElementById("mobileControls").style.display = "block";
-}
 
+  document.getElementById("start-screen").style.display = "none";
+  document.getElementById("end-screen").style.display = "none";
+  scoreboard.style.display = "block";
+
+  // Reset game state
+  score = 0; proofs = 0; lives = 5;
+  obstacles = []; multipliers = []; shields = [];
+  player.shieldActive = false; player.shieldTimer = 0;
+  updateScore();
+
+  gameRunning = true;
+  requestAnimationFrame(gameLoop);
 }
 
 function resetGame() {
@@ -69,7 +58,6 @@ function resetGame() {
 
 function drawPlayer() {
   if (player.shieldActive) {
-    // Yellow glowing ring
     ctx.beginPath();
     ctx.arc(player.x, player.y, player.size + 10, 0, Math.PI * 2);
     ctx.strokeStyle = "#ffff00";
@@ -81,19 +69,13 @@ function drawPlayer() {
   }
 
   if (player.image && player.image.complete) {
-    ctx.drawImage(
-      player.image,
-      player.x - player.size,
-      player.y - player.size,
-      player.size * 2,
-      player.size * 2
-    );
+    ctx.drawImage(player.image, player.x - player.size, player.y - player.size, player.size * 2, player.size * 2);
   } else {
-    ctx.shadowBlur = 20;
-    ctx.shadowColor = player.color;
     ctx.fillStyle = player.color;
     ctx.beginPath();
     ctx.arc(player.x, player.y, player.size, 0, Math.PI * 2);
+    ctx.shadowColor = player.color;
+    ctx.shadowBlur = 20;
     ctx.fill();
     ctx.shadowBlur = 0;
   }
@@ -142,33 +124,21 @@ function update() {
   if (keys["ArrowRight"] || keys["d"]) player.x += 6;
   player.x = Math.max(player.size, Math.min(canvas.width - player.size, player.x));
 
-  // Spawn elements
-  if (Math.random() < 0.02) {
-    obstacles.push({ x: Math.random() * (canvas.width - 20), y: -20 });
-  }
-  if (Math.random() < 0.015) {
-    multipliers.push({ x: Math.random() * (canvas.width - 12), y: -12, value: Math.floor(Math.random() * 3) + 1 });
-  }
-  if (Math.random() < 0.004) {
-    shields.push({ x: Math.random() * (canvas.width - 30), y: -30 });
-  }
+  if (Math.random() < 0.02) obstacles.push({ x: Math.random() * (canvas.width - 20), y: -20 });
+  if (Math.random() < 0.015) multipliers.push({ x: Math.random() * (canvas.width - 12), y: -12, value: Math.floor(Math.random() * 3) + 1 });
+  if (Math.random() < 0.004) shields.push({ x: Math.random() * (canvas.width - 30), y: -30 });
 
-  // Move elements
   obstacles.forEach(obj => obj.y += 5);
   multipliers.forEach(mp => mp.y += 4);
   shields.forEach(sh => sh.y += 3);
 
-  // Collisions
   obstacles = obstacles.filter(obj => {
     if (Math.hypot(player.x - obj.x, player.y - obj.y) < player.size) {
-      if (player.shieldActive) {
-        return false;
-      } else {
-        lives--;
-        livesDisplay.textContent = lives;
-        if (lives <= 0) endGame();
-        return false;
-      }
+      if (player.shieldActive) return false;
+      lives--;
+      livesDisplay.textContent = lives;
+      if (lives <= 0) endGame();
+      return false;
     }
     return obj.y < canvas.height;
   });
@@ -187,19 +157,16 @@ function update() {
   shields = shields.filter(sh => {
     if (Math.hypot(player.x - sh.x, player.y - sh.y) < player.size + 10) {
       player.shieldActive = true;
-      player.shieldTimer = 360; // 6 seconds
+      player.shieldTimer = 360;
       animateProof(sh.x, sh.y);
       return false;
     }
     return sh.y < canvas.height;
   });
 
-  // Shield timer countdown
   if (player.shieldActive) {
     player.shieldTimer--;
-    if (player.shieldTimer <= 0) {
-      player.shieldActive = false;
-    }
+    if (player.shieldTimer <= 0) player.shieldActive = false;
   }
 }
 
@@ -236,22 +203,46 @@ function gameLoop() {
 function endGame() {
   gameRunning = false;
   cancelAnimationFrame(animationId);
-  document.getElementById("scoreboard").style.display = "none";
-  document.getElementById("start-screen").style.display = "none";
+  scoreboard.style.display = "none";
   document.getElementById("end-screen").style.display = "block";
   document.getElementById("finalProofs").textContent = proofs;
 }
 
+// Keyboard controls
 document.addEventListener("keydown", e => keys[e.key] = true);
 document.addEventListener("keyup", e => keys[e.key] = false);
+
+// Mobile swipe control
+let touchStartX = null;
+
+canvas.addEventListener("touchstart", e => {
+  if (!gameRunning) return;
+  touchStartX = e.touches[0].clientX;
+});
+
+canvas.addEventListener("touchmove", e => {
+  if (!gameRunning || touchStartX === null) return;
+  const touchX = e.touches[0].clientX;
+  const deltaX = touchX - touchStartX;
+  player.x += deltaX;
+  player.x = Math.max(player.size, Math.min(canvas.width - player.size, player.x));
+  touchStartX = touchX;
+});
+
+canvas.addEventListener("touchend", () => {
+  touchStartX = null;
+});
+
+// Button hooks
 startBtn.addEventListener("click", startGame);
 restartBtn.addEventListener("click", resetGame);
 document.getElementById("shareBtn").addEventListener("click", () => {
   const name = document.getElementById("playerName").value || "Someone";
-  const tweetText = `${name} collected ${proofs} proofs in the zk dodge! ⚡🔐\nTry it here: https://zk-dodge.vercel.app/ made by @wru_kii`;
+  const tweetText = `${name} collected ${proofs} proofs in the zk dodge! ⚡🔐\nTry it here: zk-dodge.vercel.app made by @wru_kii`;
   const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`;
   window.open(tweetUrl, '_blank');
 });
+
 
 
 
